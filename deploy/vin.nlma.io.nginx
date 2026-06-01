@@ -1,0 +1,57 @@
+# /etc/nginx/sites-enabled/vin.nlma.io
+# NOTE: no `listen [::]:` — Tailscale Funnel holds IPv6 :443 on this VPS and
+# nginx will silently fail to reload otherwise.
+#
+# OAuth-based auth. Python handles all auth logic (OAuth 2.1 + DCR + PKCE +
+# /login operator-password gate). nginx only TLS-terminates, rate-limits,
+# and proxies. Bind Python to 127.0.0.1 so nothing else can reach it.
+
+server {
+    listen 80;
+    server_name vin.nlma.io;
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name vin.nlma.io;
+
+    ssl_certificate     /etc/letsencrypt/live/vin.nlma.io/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/vin.nlma.io/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    client_max_body_size 2m;
+
+    # Liveness probe — nginx-served, no log.
+    location = /health {
+        proxy_pass http://127.0.0.1:3032/health;
+        access_log off;
+    }
+
+    # Public landing page — setup instructions, no auth.
+    location = / {
+        root /var/www/vin-mcp;
+        try_files /index.html =404;
+    }
+
+    # Everything else (OAuth endpoints, /mcp, /login) → Python.
+    # Python handles all auth + routing internally.
+    location / {
+        limit_req zone=vin_mcp burst=20 nodelay;
+        limit_req_status 429;
+
+        proxy_pass http://127.0.0.1:3032;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # SSE / streamable-http friendliness.
+        proxy_buffering off;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+}

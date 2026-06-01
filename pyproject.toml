@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vin-mcp"
+version = "0.1.0"
+authors = [
+    {name = "Forrest Surprenant", email = "forrest@nlma.io"},
+]
+description = "MCP server for the NHTSA vPIC vehicle data API (VIN decode + makes/models/WMI). HTTP transport + OAuth gate."
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["vin", "vpic", "nhtsa", "vehicle", "mcp", "api", "uvx"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+]
+dependencies = [
+    "FastMCP>=2.14.0",
+    "mcp>=1.2.0",
+    "cachetools>=5.3.0",
+    "httpx",
+    "pydantic>=2.0.0",
+    "python-dotenv",
+    "starlette>=0.37.0",
+    "structlog",
+    "uvicorn[standard]>=0.30.0",
+]
+
+[project.scripts]
+vin-mcp = "src.server:main"
+
+[project.optional-dependencies]
+dev = ["black", "isort", "ruff"]
+test = ["pytest", "pytest-asyncio", "respx"]
+
+[project.urls]
+"Homepage" = "https://github.com/NextLevelManagementAdvisors/vin-mcp"
+"Bug Tracker" = "https://github.com/NextLevelManagementAdvisors/vin-mcp/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+asyncio_mode = "auto"
