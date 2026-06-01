@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>VIN MCP</title>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;max-width:680px;margin:64px auto;padding:0 22px;color:#1a1a1a;line-height:1.55}
+  h1{font-size:24px;margin-bottom:4px}
+  .sub{color:#666;margin-top:0}
+  code{background:#f4f4f5;padding:2px 6px;border-radius:4px;font-size:13px}
+  pre{background:#f4f4f5;padding:14px;border-radius:8px;overflow:auto;font-size:13px}
+  h2{font-size:15px;margin-top:28px}
+  ul{padding-left:18px}
+  li{margin:4px 0}
+  .src{color:#666;font-size:12px;margin-top:32px;border-top:1px solid #eee;padding-top:14px}
+</style>
+</head>
+<body>
+  <h1>VIN MCP</h1>
+  <p class="sub">NHTSA vPIC vehicle data over the Model Context Protocol. Single-operator server.</p>
+
+  <h2>Connect</h2>
+  <p>Add as a custom connector in Claude or ChatGPT:</p>
+  <pre>https://vin.nlma.io/mcp</pre>
+  <p>You will be asked for the operator password during the OAuth sign-in step.</p>
+
+  <h2>Tools</h2>
+  <ul>
+    <li><code>decode_vin</code> — single VIN, flat specs</li>
+    <li><code>decode_vin_extended</code> — single VIN, extended/regulatory fields</li>
+    <li><code>decode_vin_batch</code> — up to 50 VINs at once</li>
+    <li><code>get_all_makes</code> — every make in vPIC</li>
+    <li><code>get_models_for_make</code> — models for a make</li>
+    <li><code>get_models_for_make_year</code> — models filtered by year/type</li>
+    <li><code>get_makes_for_vehicle_type</code> — makes building a vehicle type</li>
+    <li><code>get_vehicle_types_for_make</code> — vehicle types for a make</li>
+    <li><code>decode_wmi</code> — decode a World Manufacturer Identifier</li>
+  </ul>
+
+  <h2>Coverage &amp; limits</h2>
+  <ul>
+    <li>US-market vehicles, model year 1981 and forward.</li>
+    <li>Specifications only — no title, accident, odometer, or theft history.</li>
+  </ul>
+
+  <p class="src">Data source: NHTSA vPIC (vpic.nhtsa.dot.gov). Public-domain US government data.</p>
+</body>
+</html>
