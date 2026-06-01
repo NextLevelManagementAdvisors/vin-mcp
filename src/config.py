@@ -21,7 +21,7 @@ VPIC_TIMEOUT_SECONDS: float = float(os.getenv("VPIC_TIMEOUT_SECONDS", "30"))
 # --- MCP transport ---
 MCP_TRANSPORT: str = os.getenv("MCP_TRANSPORT", "stdio")  # "stdio" | "http"
 MCP_HOST: str = os.getenv("MCP_HOST", "0.0.0.0")
-MCP_PORT: int = int(os.getenv("MCP_PORT", "3032"))
+MCP_PORT: int = int(os.getenv("MCP_PORT", "3034"))
 
 # --- OAuth (HTTP transport only) ---
 # - MCP_BASE_URL: public URL of the server, e.g. https://vin.nlma.io. Used by
@@ -32,7 +32,7 @@ MCP_PORT: int = int(os.getenv("MCP_PORT", "3032"))
 # - MCP_OAUTH_STATE_DIR: where to persist OAuth state (registered clients,
 #   tokens). In production use /var/lib/vin-mcp/oauth-state.
 # - MCP_OAUTH_REDIRECT_DOMAINS: comma-separated redirect-URI host suffixes.
-MCP_BASE_URL: str = os.getenv("MCP_BASE_URL", "http://localhost:3032")
+MCP_BASE_URL: str = os.getenv("MCP_BASE_URL", "http://localhost:3034")
 MCP_OWNER_PASSWORD: str = os.getenv("MCP_OWNER_PASSWORD", "")
 MCP_OAUTH_STATE_DIR: str = os.getenv("MCP_OAUTH_STATE_DIR", ".oauth-state")
 MCP_OAUTH_REDIRECT_DOMAINS: list[str] = [

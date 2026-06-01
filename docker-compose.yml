@@ -6,11 +6,11 @@ services:
     restart: unless-stopped
     env_file: .env
     ports:
-      - "127.0.0.1:3033:3032"
+      - "127.0.0.1:3034:3034"
     volumes:
       - /var/lib/vin-mcp/oauth-state:/var/lib/vin-mcp/oauth-state
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:3032/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:3034/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
