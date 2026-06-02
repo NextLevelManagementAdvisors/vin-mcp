@@ -14,12 +14,13 @@ from src.auth import VinPersonalAuthProvider
 def _build_auth_provider():
     """Construct the OAuth provider.
 
-    We attach the provider whenever MCP_OWNER_PASSWORD is set, regardless of
-    MCP_TRANSPORT (which is a *runtime* selector, not a build-time one — the
-    --transport CLI flag can override the env var). For stdio transport the
-    provider is unused but harmless.
+    We attach the provider whenever an operator gate is configured (an operator
+    password and/or Google sign-in), regardless of MCP_TRANSPORT (which is a
+    *runtime* selector, not a build-time one — the --transport CLI flag can
+    override the env var). For stdio transport the provider is unused but
+    harmless.
     """
-    if not config.MCP_OWNER_PASSWORD:
+    if not (config.MCP_OWNER_PASSWORD or config.GOOGLE_WEB_CLIENT_ID):
         return None
     return VinPersonalAuthProvider(
         base_url=config.MCP_BASE_URL,

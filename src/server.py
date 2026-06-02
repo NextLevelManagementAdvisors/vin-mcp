@@ -3,10 +3,11 @@
 Transports:
 - stdio: for local Claude Desktop / mcp-inspector. No auth.
 - http:  for hosted deploy at vin.nlma.io with OAuth 2.1 (DCR + PKCE).
-         A password gate at /login sits in front of /authorize so only the
-         operator can complete the flow.
+         A login gate at /login (Google sign-in and/or operator password) sits
+         in front of /authorize so only an authorized human can complete the
+         flow.
 
-All custom HTTP behavior (/health, /login GET, /login POST, /authorize gate)
+All custom HTTP behavior (/health, /login, /oauth/google/*, /authorize gate)
 lives in src/login_views.py:OperatorGateMiddleware. We do NOT use
 @mcp.custom_route — it interferes with OAuth route mounting.
 """
@@ -68,10 +69,10 @@ def main() -> None:
         logger.error("Unknown transport", transport=args.transport)
         sys.exit(2)
 
-    if not config.MCP_OWNER_PASSWORD:
+    if not (config.MCP_OWNER_PASSWORD or config.GOOGLE_WEB_CLIENT_ID):
         logger.error(
-            "MCP_OWNER_PASSWORD is required for http transport "
-            "(used to gate /authorize)."
+            "http transport needs an operator gate: set MCP_OWNER_PASSWORD "
+            "and/or GOOGLE_WEB_CLIENT_ID."
         )
         sys.exit(1)
 
@@ -81,11 +82,15 @@ def main() -> None:
         host=args.host,
         port=args.port,
         base_url=config.MCP_BASE_URL,
+        google_gate=bool(config.GOOGLE_WEB_CLIENT_ID),
+        password_fallback=bool(
+            config.MCP_OWNER_PASSWORD and config.ALLOW_PASSWORD_FALLBACK
+        ),
     )
 
-    # OperatorGateMiddleware serves /health and /login, and gates /authorize
-    # behind a password cookie. Everything else passes through to FastMCP's
-    # OAuth + MCP route handlers.
+    # OperatorGateMiddleware serves /health, /login and /oauth/google/*, and
+    # gates /authorize behind a login cookie. Everything else passes through to
+    # FastMCP's OAuth + MCP route handlers.
     mcp.run(
         transport="streamable-http",
         host=args.host,

@@ -44,6 +44,30 @@ MCP_OAUTH_REDIRECT_DOMAINS: list[str] = [
     if d.strip()
 ]
 
+# --- Google sign-in gate (optional; HTTP transport only) ---
+# When GOOGLE_WEB_CLIENT_ID/SECRET are set, /login offers "Sign in with
+# Google". vin requests only `openid email` (online access, no refresh token):
+# it calls no Google API, it just verifies who the human is, then checks the
+# returned email against GOOGLE_ALLOWED_EMAILS before letting OAuth proceed.
+# Use a *web* OAuth client whose authorized redirect URI includes
+# <MCP_BASE_URL>/oauth/google/callback.
+GOOGLE_WEB_CLIENT_ID: str = os.getenv("GOOGLE_WEB_CLIENT_ID", "")
+GOOGLE_WEB_CLIENT_SECRET: str = os.getenv("GOOGLE_WEB_CLIENT_SECRET", "")
+GOOGLE_OAUTH_REDIRECT_URI: str = os.getenv(
+    "GOOGLE_OAUTH_REDIRECT_URI",
+    f"{MCP_BASE_URL.rstrip('/')}/oauth/google/callback",
+)
+GOOGLE_ALLOWED_EMAILS: list[str] = [
+    e.strip().lower()
+    for e in os.getenv("GOOGLE_ALLOWED_EMAILS", "").split(",")
+    if e.strip()
+]
+# Keep the operator-password gate working as a break-glass fallback alongside
+# Google sign-in (so a Google outage cannot lock the operator out).
+ALLOW_PASSWORD_FALLBACK: bool = os.getenv(
+    "ALLOW_PASSWORD_FALLBACK", "true"
+).lower() in ("1", "true", "yes", "on")
+
 # --- Logging ---
 LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 LOG_FORMAT: str = os.getenv("LOG_FORMAT", "json")
