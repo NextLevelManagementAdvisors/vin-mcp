@@ -42,3 +42,10 @@ an open relay against NHTSA's rate limiter on the host IP.
 NHTSA vPIC — https://vpic.nhtsa.dot.gov/api/ (public-domain US government data).
 OAuth scaffold adapted from `crumrine/fastmcp-personal-auth` (MIT), via the
 attom-mcp deployment pattern.
+## License
+
+Copyright © 2026 Next Level Management Advisors, LLC.
+
+Licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0) — see [LICENSE](LICENSE). If you run a modified version over a network, the AGPL requires you to make your modified source available to its users.
+
+**Commercial licensing:** to use this in a closed-source or commercial product, or to host a modified version without publishing your source, a commercial license is available — contact **forrest@nlma.io**.

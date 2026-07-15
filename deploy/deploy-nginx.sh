@@ -12,7 +12,7 @@
 #      the pidfile from the running master before `nginx -s reload`, else HUP it.
 #
 # Run on the VPS as root:   sudo ./deploy/deploy-nginx.sh
-# Or from a workstation:    ssh root@178.16.141.166 'cd /opt/vin-mcp && ./deploy/deploy-nginx.sh'
+# Or from a workstation:    ssh root@YOUR_SERVER_IP 'cd /opt/vin-mcp && ./deploy/deploy-nginx.sh'
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
