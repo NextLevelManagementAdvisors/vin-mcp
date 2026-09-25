@@ -62,6 +62,83 @@ GOOGLE_ALLOWED_EMAILS: list[str] = [
     for e in os.getenv("GOOGLE_ALLOWED_EMAILS", "").split(",")
     if e.strip()
 ]
+# Domain-level allowlist: any Google email whose domain matches passes the gate
+# (e.g. "nlma.io,fidumcompany.com" admits everyone @ those orgs). Stored without
+# a leading "@". Combined with GOOGLE_ALLOWED_EMAILS via OR — either list
+# matching admits the email.
+_ENV_GOOGLE_ALLOWED_DOMAINS: list[str] = [
+    d.strip().lower().lstrip("@")
+    for d in os.getenv("GOOGLE_ALLOWED_DOMAINS", "").split(",")
+    if d.strip()
+]
+
+# --- Org-wide authorized-domains registry (managed from status.nlma.io) -----
+# allowed_domains() below resolves env domains UNION
+# https://status.nlma.io/domains.json (TTL cache, last-known-good on outage,
+# baked defaults on cold failure) — mirrors bright-auth / skiptrace-mcp, so
+# adding a domain on the dashboard reaches vin with no redeploy. Set
+# AUTHORIZED_DOMAINS_URL="" to disable the registry and run env-only.
+AUTHORIZED_DOMAINS_URL: str = os.getenv(
+    "AUTHORIZED_DOMAINS_URL", "https://status.nlma.io/domains.json"
+)
+AUTHORIZED_DOMAINS_TTL: int = int(os.getenv("AUTHORIZED_DOMAINS_TTL", "60"))
+_REGISTRY_DEFAULTS = frozenset(
+    {
+        "aristidemanagement.com",
+        "fidumcompany.com",
+        "hvacfrontroyal.com",
+        "mattmirus.com",
+        "nlma.io",
+        "propmanageplus.com",
+        "tra-lawfirm.com",
+        "zipadeeservices.com",
+    }
+)
+_registry_cache: dict = {"domains": None, "exp": 0.0}
+
+
+def _registry_domains() -> frozenset:
+    if not AUTHORIZED_DOMAINS_URL:
+        return frozenset()
+    import json as _json
+    import time as _time
+    import urllib.request as _rq
+
+    now = _time.time()
+    if _registry_cache["domains"] is not None and _registry_cache["exp"] > now:
+        return _registry_cache["domains"]
+    try:
+        req = _rq.Request(
+            AUTHORIZED_DOMAINS_URL, headers={"Accept": "application/json"}
+        )
+        with _rq.urlopen(req, timeout=4) as r:
+            doms = frozenset(
+                str(d).strip().lower()
+                for d in _json.loads(r.read().decode()).get("domains", [])
+                if str(d).strip()
+            )
+        if doms:
+            _registry_cache.update(domains=doms, exp=now + AUTHORIZED_DOMAINS_TTL)
+            return doms
+    except Exception:
+        pass
+    if _registry_cache["domains"] is not None:
+        _registry_cache["exp"] = now + AUTHORIZED_DOMAINS_TTL
+        return _registry_cache["domains"]
+    return _REGISTRY_DEFAULTS
+
+
+def allowed_domains() -> list[str]:
+    """env domains UNION the live org-wide registry.
+
+    A resolver function, deliberately not a module-level constant: tests that
+    `monkeypatch.setattr(config, "GOOGLE_ALLOWED_EMAILS", [...])` should not
+    have to also know about the registry union, and a plain constant computed
+    at import time would go stale the moment the registry refreshes.
+    """
+    return sorted(set(_ENV_GOOGLE_ALLOWED_DOMAINS) | _registry_domains())
+
+
 # Keep the operator-password gate working as a break-glass fallback alongside
 # Google sign-in (so a Google outage cannot lock the operator out).
 ALLOW_PASSWORD_FALLBACK: bool = os.getenv(
