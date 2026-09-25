@@ -13,8 +13,11 @@ Two gate methods, both optional and config-driven:
    GET  /login                 -> page with a "Sign in with Google" button
    GET  /oauth/google/start     -> 302 to Google consent (scope: openid email)
    GET  /oauth/google/callback  -> exchange code, read the verified email from
-                                   userinfo, check GOOGLE_ALLOWED_EMAILS, set
-                                   the cookie, 303 back to /authorize.
+                                   userinfo, check it against GOOGLE_ALLOWED_EMAILS
+                                   or an allowed domain (GOOGLE_ALLOWED_DOMAINS
+                                   plus the status.nlma.io registry, see
+                                   config.allowed_domains()), set the cookie,
+                                   303 back to /authorize.
    Online access only (no refresh token) — vin calls no Google API.
 
 2. Operator password (break-glass fallback; enabled when MCP_OWNER_PASSWORD is
@@ -142,11 +145,19 @@ def _pop_state(st: str) -> Optional[dict]:
 
 
 def _email_allowed(email: str) -> bool:
-    allow = config.GOOGLE_ALLOWED_EMAILS
-    # Fail closed: with no allowlist configured, nobody passes the Google gate.
-    if not allow:
-        return False
-    return email.lower() in {a.lower() for a in allow}
+    """Fail closed: with no allowlist configured, nobody passes the Google gate.
+
+    Two allowlists, combined with OR: an exact-email list (GOOGLE_ALLOWED_EMAILS)
+    and a domain list (config.allowed_domains() — env GOOGLE_ALLOWED_DOMAINS
+    UNION the org-wide status.nlma.io registry).
+    """
+    email = email.lower()
+    emails = config.GOOGLE_ALLOWED_EMAILS
+    domains = config.allowed_domains()
+    if email in {a.lower() for a in emails}:
+        return True
+    domain = email.rpartition("@")[2]
+    return bool(domain) and domain in {d.lower() for d in domains}
 
 
 def _google_consent_url(state: str) -> str:
